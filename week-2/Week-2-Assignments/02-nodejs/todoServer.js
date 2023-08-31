@@ -41,9 +41,113 @@
  */
 const express = require('express');
 const bodyParser = require('body-parser');
-
+const fs = require("fs");
+const path = require("path");
+const cors = require("cors");
 const app = express();
 
 app.use(bodyParser.json());
+app.use(cors());
 
+const filePath = path.join(__dirname, "./todos.json");
+
+app.delete("/todos/:id", (req, res) => {
+  const id = parseInt(req.params.id);
+  fs.readFile(filePath, "utf8", (err, data) => {
+    if (err) throw err;
+    const content = JSON.parse(data);
+    let idx = -1;
+    for (let i = 0; i < content.length; i++) {
+      if (content[i].id === id) {
+        idx = i;
+        break;
+      }
+    }
+    if (idx != -1) {
+      console.log(content[idx]);
+      content.splice(idx, 1);
+      fs.writeFile(filePath, JSON.stringify(content), (err) => {
+        if (err) throw err;
+        res.send(content);
+      })
+    } else {
+      res.status(400).send("Id is wrong");
+    }
+  })
+});
+
+app.put("/todos/:id", (req, res) => {
+  const id = parseInt(req.params.id);
+  const { title, description } = req.body;
+  fs.readFile(filePath, "utf8", (err, content) => {
+    if (err) throw err;
+    let data = JSON.parse(content);
+    for (let i = 0; i < data.length; i++) {
+      if (data[i].id === id) {
+        data[i] = {
+          id: id,
+          title: title,
+          description: description
+        }
+      }
+    }
+    fs.writeFile(filePath, JSON.stringify(data), (err) => {
+      if (err) throw err;
+      res.status(200).send(data);
+    });
+  });
+});
+app.get("/todos", (req, res) => {
+  fs.readFile(filePath, "utf8", (err, data) => {
+    if (err) res.send(err);
+    const todo = JSON.parse(data);
+    res.json(todo);
+  });
+});
+
+app.get("/todos/:id", (req, res) => {
+  const id = parseInt(req.params.id);
+  fs.readFile(filePath, "utf8", (err, d) => {
+    if (err) throw err;
+    let temp = null;
+    const data = JSON.parse(d);
+    for (let i = 0; i < data.length; i++) {
+      if (data[i].id === id) {
+        temp = data[i];
+        break;
+      }
+    }
+    // console.log(typeof (id));
+    // console.log(temp);
+    if (temp) {
+      res.status(200).json(temp);
+    } else {
+      res.status(400).send("Id not found");
+    }
+  });
+});
+
+app.post("/todos", (req, res) => {
+  const { title, description } = req.body;
+  if (!title || !description) {
+    res.status(404).send("Please enter all field");
+    return;
+  }
+  const newTodo = {
+    id: Math.round(Math.random() * 100000),
+    title: title,
+    description: description
+  }
+  fs.readFile(filePath, "utf8", (err, data) => {
+    if (err) throw err;
+    const allToDo = JSON.parse(data);
+    allToDo.push(newTodo);
+    fs.writeFile(filePath, JSON.stringify(allToDo), (err) => {
+      if (err)
+        throw err;
+      res.status(201).json("hi");
+    });
+  });
+});
+app.listen(3000, () => console.log("Earth is Eliptical shape"));
 module.exports = app;

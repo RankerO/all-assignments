@@ -1,0 +1,234 @@
+<html>
+<title>To Do</title>
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+        font-size: 20px;
+    }
+
+    body {
+        background-color: antiquewhite;
+    }
+
+    #title {
+        border-radius: 5px;
+        padding: 5px;
+        width: 425px;
+    }
+
+    .des {
+        width: 200px;
+        height: 50px;
+        padding: 20px;
+        padding-top: 10px;
+        margin-top: 0px;
+    }
+
+    #description {
+        padding: 10px;
+        border-radius: 10px;
+    }
+
+    .t {
+        padding: 20px;
+        padding-bottom: 0;
+        width: 100px;
+    }
+
+    .buttom {
+        padding: 20px;
+        margin-top: 50px;
+    }
+
+    .btn {
+        padding: 5px;
+        background-color: rgb(8, 59, 76);
+        color: aliceblue;
+        border-radius: 5px;
+        cursor: pointer;
+        margin-top: 10px;
+    }
+
+    .origin {
+        display: flex;
+    }
+
+    .child-left {
+        flex: 0.5;
+        display: flex;
+        justify-content: center;
+        margin-right: 10px;
+    }
+
+    .right-child {
+        flex: 0.5;
+        display: flex;
+        margin-top: 30px;
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .header-right {
+        font-size: 40px;
+        font-weight: 600;
+        color: blue;
+        margin-bottom: 10px;
+    }
+
+    .child-right {
+        font-weight: 700;
+        color: black;
+        margin-top: 10px;
+        padding: 10px;
+        background-color: rgb(8, 59, 76);
+        border-radius: 20%;
+        width: 400px;
+        height: 150px;
+    }
+
+    .btn-right {
+        background-color: blue;
+        border-radius: 10px;
+        color: aliceblue;
+        padding: 5px;
+        margin-left: 10px;
+        font-size: small;
+        cursor: pointer;
+    }
+
+    .right-child-body {
+        display: flex;
+        color: wheat;
+        justify-content: space-around;
+        margin-top: 30px;
+    }
+
+    .child-right-header {
+        font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+        color: aliceblue;
+    }
+
+    #toDoParent {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+</style>
+
+</html>
+
+<script>
+    function newHandler(id) {
+        fetch(`http://localhost:3000/todos/${id}`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                console.log('Data deleted successfully');
+            })
+            .catch(error => {
+                console.error('Fetch error:', error);
+            });
+    }
+    function getData() {
+        fetch('http://localhost:3000/todos')
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('Data received:', data);
+                const parentElement = document.getElementById("toDoParent");
+                for (let i = 0; i < data.length; i++) {
+                    let child = data[i];
+                    const newDiv = document.createElement('div');
+                    newDiv.className = 'child-right';
+                    const newP = document.createElement('p');
+                    newP.className = "child-right-header";
+                    newP.textContent = child.title;
+                    newDiv.append(newP);
+                    const newDivChild = document.createElement('div');
+                    newDivChild.className = 'right-child-body';
+                    const newP2 = document.createElement('p');
+                    newP2.className = "child-right-body";
+                    newP2.textContent = child.description;
+                    const newButton = document.createElement('button');
+                    newButton.className = "btn-right";
+                    newButton.addEventListener('click', function () {
+                        newHandler(child.id);
+                    });
+                    newButton.textContent = "Delete";
+                    newDivChild.append(newP2);
+                    newDivChild.append(newButton);
+                    newDiv.append(newDivChild);
+                    const wholeDivRight = document.createElement('div');
+                    wholeDivRight.className = "wholeDivRight";
+                    wholeDivRight.append(newDiv);
+                    parentElement.append(wholeDivRight);
+                }
+            })
+            .catch(error => {
+                console.error('Fetch error:', error);
+            });
+    }
+    getData();
+    function submitHandler() {
+        const description = document.getElementById("description");
+        const title = document.getElementById("title");
+        let content = {
+            title: title.value,
+            description: description.value
+        }
+        console.log(content);
+        fetch('http://localhost:3000/todos', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(content)
+        })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Data received:', data);
+            })
+            .catch(error => {
+                console.error('Fetch error:', error);
+            });
+    }
+</script>
+
+<body>
+    <div class="origin">
+        <div class="child-left">
+            <div class="child-left-center">
+                <div class="t">
+                    <label for="title">Title</label>
+                    <input id="title" />
+                </div>
+                <div class="des">
+                    <label for="description">Discription</label>
+                    <textarea type=" text" id="description" rows="4" cols="35"></textarea>
+                </div>
+                <div class="buttom">
+                    <button type="button" class="btn" onclick="submitHandler()">
+                        Add To Do
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div class="right-child">
+            <p class="header-right">LIST OF TODO</p>
+            <div id="toDoParent">
+            </div>
+        </div>
+
+    </div>
+</body>
