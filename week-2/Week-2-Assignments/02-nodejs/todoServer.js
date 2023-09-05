@@ -128,11 +128,12 @@ app.get("/todos/:id", (req, res) => {
 });
 
 app.post("/todos", (req, res) => {
-  const { title, description } = req.body;
+  let { title, description } = req.body;
   if (!title || !description) {
     res.status(404).send("Please enter all field");
     return;
   }
+  title = title.toUpperCase();
   const newTodo = {
     id: Math.round(Math.random() * 100000),
     title: title,
